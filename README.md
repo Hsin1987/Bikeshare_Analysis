@@ -1,7 +1,7 @@
 Bikeshare Data Analysis Project
 ===
 
-This is a simple practice project of Udacity - Data Science Nano degree.
+This is a simple practice project of Udacity - Data Analyst Nanodegree Program.
 
 
 ## Some useful link I refered:
