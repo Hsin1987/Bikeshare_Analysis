@@ -6,6 +6,16 @@ CITY_DATA = {'chicago': 'chicago.csv',
              'new york city': 'new_york_city.csv',
              'washington': 'washington.csv'}
 
+
+def input_mod(input_print, error_print, enterable_list):
+    print(input_print)
+    ret = str(input())
+    while ret not in enterable_list:
+        print(error_print)
+        ret = str(input())
+    return ret
+
+
 def get_filters():
     """
     Asks user to specify a city, month, and day to analyze.
@@ -16,26 +26,26 @@ def get_filters():
         (str) day - name of the day of week to filter by, or "all" to apply no day filter
     """
     print('Hello! Let\'s explore some US bikeshare data!')
+
+    # Stage 1:
     # get user input for city (chicago, new york city, washington). HINT: Use a while loop to handle invalid inputs
+
     cities = {
         '1': 'chicago',
         '2': 'new york city',
-        '3': 'washington',
-    }
-    city_msg = """
-    1: Chicago
-    2: New YorK
-    3: Washington
-    """
-    print('Choose a city by keying in the number (1~3): ')
-    print(city_msg)
-    key = str(input())
-    while key not in cities.keys():
-        print("Please choose the city by keying in  1, 2, or 3.")
-        key = str(input())
+        '3': 'washington'}
 
-    city = cities[key]
+    city_msg = ''
+    for k, v in sorted(cities.items()):
+        city_msg += '{}: {}\n'.format(k, v)
 
+    input_print = 'Choose a city by keying in the number (1~3): \n' + city_msg
+    error_print = 'Please choose the city by keying in  1, 2, or 3.'
+    enterable_list = cities.keys()
+
+    city = cities[input_mod(input_print, error_print, enterable_list)]
+
+    # Stage 2:
     # get user input for month (all, january, february, ... , june)
     months = {
         '0': "All",
@@ -46,23 +56,17 @@ def get_filters():
         '5': 'May',
         '6': 'June'
     }
-    month_msg = """
-        0: All,
-        1: January
-        2: February,
-        3: March,
-        4: April,
-        5: May,
-        6: June,
-        """
-    print('Chose a the month for analysis by keying in the number (0~6): ')
-    print(month_msg)
-    key = str(input())
-    while key not in months.keys():
-        print("Please choose the month by keying in the number (0~6).")
-        key = str(input())
 
-    month = months[key].lower()
+    month_msg = ''
+    for k, v in sorted(months.items()):
+        month_msg += '{}: {}\n'.format(k, v)
+
+    input_print = 'Chose a the month for analysis by keying in the number (0~6): \n' + month_msg
+    error_print = 'Please choose the month by keying in the number (0~6).'
+    enterable_list = months.keys()
+    month = months[input_mod(input_print, error_print, enterable_list)].lower()
+
+    # Stage 3:
     # get user input for day of week (all, monday, tuesday, ... sunday)
     weekdays = {
         '0': "All",
@@ -74,25 +78,15 @@ def get_filters():
         '6': 'Saturday',
         '7': 'Sunday'
     }
-    weekdays_msg = """
-        0: All,
-        1: Monday
-        2: Tuesday,
-        3: Wednesday,
-        4: Thursday,
-        5: Friday,
-        6: Saturday,
-        7: Sunday
-        """
-    print('Chose a the weekdays for analysis by keying in the number (0~7): ')
-    print(weekdays_msg)
-    key = str(input())
-    while key not in weekdays.keys():
-        print("Please choose the weekdays for analysis by keying in the number (0~7).")
-        key = str(input())
 
-    day = weekdays[key]
+    weekdays_msg = ''
+    for k, v in sorted(weekdays.items()):
+        weekdays_msg += "{}: {}\n".format(k, v)
 
+    input_print = 'Chose a the weekdays for analysis by keying in the number (0~7): \n' + weekdays_msg
+    error_print = 'Please choose the weekdays for analysis by keying in the number (0~7).'
+    enterable_list = weekdays.keys()
+    day = weekdays[input_mod(input_print, error_print, enterable_list)]
 
     print('-'*40)
     return city, month, day
@@ -217,12 +211,36 @@ def user_stats(df):
     print(df["Gender"].value_counts())
 
     # Display earliest, most recent, and most common year of birth
-    print("Earliest birth year: ", int(df["Birth Year"].min()))
-    print("Most recent birth year: ", int(df["Birth Year"].max()))
-    print("Most common year: ", int(df["Birth Year"].value_counts().index[0]))
+    try:
+        print("Earliest birth year: ", int(df["Birth Year"].min()))
+        print("Most recent birth year: ", int(df["Birth Year"].max()))
+        print("Most common year: ", int(df["Birth Year"].value_counts().index[0]))
 
-    print("\nThis took %s seconds." % (time.time() - start_time))
+        print("\nThis took %s seconds." % (time.time() - start_time))
+    except:
+        print("The raw data does not include user's birth year.")
+
     print('-'*40)
+
+def raw_data_display(df):
+    choose = {
+        '1': True,
+        "2": False
+    }
+    input_print = '\nWant see raw data? \n Type 1 for "yes". \n Type 2 for "no". \n '
+    error_print = 'Please type 1 for "yes" or 2 for "no" '
+    enterable_list = choose.keys()
+    display_raw_data = choose[input_mod(input_print, error_print, enterable_list)]
+    counter = 0
+    while display_raw_data:
+        print("Data from No.{} to No.{}: ".format(counter+1, counter+10))
+
+        with pd.option_context('display.max_rows', None, 'display.max_columns', 1000):
+            print(df.iloc[counter: counter+10])
+        counter += 11
+        input_print = '\nWant see raw more data? \n 6 Type 1 for "yes". \n Type 2 for "no". \n'
+        display_raw_data = choose[input_mod(input_print, error_print, enterable_list)]
+    return
 
 
 def main():
@@ -230,20 +248,19 @@ def main():
 
         city, month, day = get_filters()
         df = load_data(city, month, day)
-        #df = load_data("chicago", "january", "all")
+
         time_stats(df)
         station_stats(df)
 
         trip_duration_stats(df)
 
         user_stats(df)
+        raw_data_display(df)
 
         restart = input('\nWould you like to restart? Enter yes or no.\n')
         if restart.lower() != 'yes':
             break
 
 
-
-
 if __name__ == "__main__":
-	main()
+    main()
